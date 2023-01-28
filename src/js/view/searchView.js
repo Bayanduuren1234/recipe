@@ -24,9 +24,47 @@ export const clearSearchQuery = () => {
 };
 export const clearSearchResult = () => {
   elements.searchResultList.innerHTML = "";
+  elements.pageButtons.innerHTML = "";
 };
 
 export const getInput = () => elements.searchInput.value;
-export const renderRecipes = (recipes) => {
-  recipes.forEach(renderRecipe);
+export const renderRecipes = (recipes, currentPage = 1, resPerPage = 10) => {
+  // Хайлтын үр дүнг хуудаслаж үзүүлэх.
+  // page = 2, start = 10, end = 20
+  const start = (currentPage - 1) * resPerPage;
+  const end = currentPage * resPerPage;
+
+  recipes.slice(start, end).forEach(renderRecipe);
+  // Хуудаслалтын товчуудыг гаргаж ирэх.
+  // Math.ceil дээшээ бүхэлдэх функц
+  const totalPages = Math.ceil(recipes.length / resPerPage);
+
+  renderButtons(currentPage, totalPages);
+};
+
+// type ===> "prev", "next"
+const createButton = (page, type, direction) => `
+          <button class="btn-inline results__btn--${type}" data-goto=${page}>
+            <svg class="search__icon">
+              <use href="img/icons.svg#icon-triangle-${direction}"></use>
+            </svg>
+            <span>Хуудас ${page}</span>
+          </button>
+`;
+
+const renderButtons = (currentPage, totalPages) => {
+  let buttonHtml;
+
+  if (currentPage === 1 && totalPages > 1) {
+    // 1-р хуудсан дээр байна, 2-р хуудас гэдэг товчийг гаргах.
+    buttonHtml = createButton(2, "next", "right");
+  } else if (currentPage < totalPages) {
+    // Өмнөх болон дараачийн хуудас руу шилжих товчуудыг үзүүлнэ.
+    buttonHtml = createButton(currentPage - 1, "prev", "left");
+    buttonHtml += createButton(currentPage + 1, "next", "right");
+  } else if (currentPage === totalPages) {
+    // Хамгийн сүүлийн хуудас дээр байна. Өмнөх рүү шилжүүлэх товчыг л үзүүлнэ.
+    buttonHtml = createButton(currentPage - 1, "prev", "left");
+  }
+  elements.pageButtons.insertAdjacentHTML("afterbegin", buttonHtml);
 };

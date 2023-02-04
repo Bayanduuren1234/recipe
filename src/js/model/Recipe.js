@@ -18,4 +18,13 @@ export default class Recipe {
     this.title = result.data.recipe.title;
     this.social_rank = result.data.recipe.social_rank;
   }
+
+  calcTime() {
+    // Найрлага бүрт 5 мин зарцуулна.
+    this.time = this.ingredients.length * 5;
+  }
+
+  calcHumanCount() {
+    this.humanCount = 4;
+  }
 }

@@ -2,6 +2,13 @@ import Search from "./model/Search";
 import { elements, renderLoader, clearLoader } from "./view/base";
 import * as searchView from "./view/searchView";
 import Recipe from "./model/Recipe";
+import {
+  renderRecipe,
+  clearRecipe,
+  highlightSelectedRecipe,
+} from "./view/recipeView";
+import List from "./model/List";
+import * as listView from "./view/listView";
 
 // Web app төлөв
 // - Хайлтын query, үр дүн
@@ -11,6 +18,7 @@ import Recipe from "./model/Recipe";
 
 const state = {};
 
+// Хайлтын controller
 const controlSearch = async () => {
   // 1) Вебээс хайлтын түлхүүр үгийг гаргаж авна.
   const query = searchView.getInput();
@@ -47,5 +55,58 @@ elements.pageButtons.addEventListener("click", (e) => {
   }
 });
 
-const r = new Recipe(47746);
-r.getRecipe();
+// Жорын controller
+
+const controlRecipe = async () => {
+  // 1) URL-аас ID-г салгаж авна.
+  const id = window.location.hash.replace("#", "");
+
+  // URL дээр ID байгаа эсэхийг шалгана.
+  if (id) {
+    // 2) Жорын Model-ийг үүсгэж өгнө.
+    state.recipe = new Recipe(id);
+
+    // 3) UI дэлгэцийг бэлтгэнэ.
+    clearRecipe();
+    renderLoader(elements.recipeDiv);
+    highlightSelectedRecipe(id);
+    // 4) Жороо татаж авчирна.
+    await state.recipe.getRecipe();
+
+    // 5) Жорыг гүйцэтгэх хугацаа болон орцыг тооцоолно.
+    clearLoader();
+    state.recipe.calcTime();
+    state.recipe.calcHumanCount();
+    // 6) Жороо дэлгэцэнд гаргана.
+    renderRecipe(state.recipe);
+  }
+};
+
+// window.addEventListener("hashchange", controlRecipe);
+// window.addEventListener("load", controlRecipe);
+
+["hashchange", "load"].forEach((event) =>
+  window.addEventListener(event, controlRecipe)
+);
+
+// Найрлаганы controller
+const controlList = () => {
+  // Найрлаганы Model-ийг үүсгэнэ.
+  state.list = new List();
+
+  // Өмнөх найрлагуудыг дэлгэцээс цэвэрлэнэ.
+  listView.clearItems();
+  // Уг Model руу одоо харагдаж байгаа жорны найрлагыг авч хийнэ.
+  state.recipe.ingredients.forEach((n) => {
+    // Тухайн найрлагыг Model руу хийнэ.
+    state.list.addItem(n);
+    // Тухайн найрлагыг дэлгэцэнд гаргана.
+    listView.renderItem(n);
+  });
+};
+
+elements.recipeDiv.addEventListener("click", (e) => {
+  if (e.target.matches(".recipe__btn, .recipe__btn *")) {
+    controlList();
+  }
+});

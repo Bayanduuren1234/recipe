@@ -20,9 +20,6 @@ import * as likesView from "./view/likesView";
 
 const state = {};
 
-// Like цэсийг хаах
-likesView.toggleLikeMenu(0);
-
 // Хайлтын controller
 const controlSearch = async () => {
   // 1) Вебээс хайлтын түлхүүр үгийг гаргаж авна.
@@ -65,7 +62,6 @@ elements.pageButtons.addEventListener("click", (e) => {
 const controlRecipe = async () => {
   // 1) URL-аас ID-г салгаж авна.
   const id = window.location.hash.replace("#", "");
-  if (!state.likes) state.likes = new Like();
 
   // URL дээр ID байгаа эсэхийг шалгана.
   if (id) {
@@ -89,11 +85,21 @@ const controlRecipe = async () => {
 };
 
 // window.addEventListener("hashchange", controlRecipe);
-// window.addEventListener("load", controlRecipe);
 
 ["hashchange", "load"].forEach((event) =>
   window.addEventListener(event, controlRecipe)
 );
+
+window.addEventListener("load", (e) => {
+  // Шинээр like моделийг апп ачаалагдахад үүсгэнэ.
+  if (!state.likes) state.likes = new Like();
+
+  // Like цэсийг гаргах эсэхийг шийдэх.
+  likesView.toggleLikeMenu(state.likes.getNumberOfLikes());
+
+  // Лайкууд байвал тэдгээрийг цэсэнд нэмж харуулна.
+  state.likes.likes.forEach((like) => likesView.renderLike(like));
+});
 
 // Найрлаганы controller
 const controlList = () => {
